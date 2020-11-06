@@ -1,0 +1,108 @@
+---
+title: "ANZ Data Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+data<-read_excel("ANZ_synthesised_transaction_dataset.xlsx")
+```
+
+Overview
+======================================================================
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Total number of transactions made by customers
+```{r}
+n <- data %>% nrow()
+valueBox(n, icon = "swap_horizontal_line")
+```
+
+
+
+
+
+### Chart A: Age range of customers
+
+```{r}
+plot_ly(data, x=~age, type="histogram")
+```
+
+
+
+
+### Chart B: Status of customers
+
+```{r}
+plot_ly(data, labels=~status, type="pie", title="Status of customers")
+```
+
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Chart C: Day of transactions
+>1:Monday, 2:Tuesday, 3:Wednesday, 4:Thursday, 5:Friday, 6:Saturday, 7:Sunday
+
+```{r}
+c<-ggplot(data, aes(Weekday))+geom_bar()+ggtitle("Day of transactions")
+ggplotly(c)
+```
+
+### Chart D: Month of transactions
+
+```{r}
+plot_ly(data, labels=~Month, type="pie", title="Month of transactions")
+```
+
+
+
+Type of transactions
+========================================================================
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+
+### Chart E: Type of transactions
+```{r}
+d<-ggplot(data,aes(txn_description, fill=movement))+ggtitle("Type of transactions")+geom_bar()
+ggplotly(d)
+```
+
+
+### Chart F: Amount of transaction
+
+```{r}
+plot_ly(data, x=~amount, type="histogram")
+```
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Table A: Customers who involve in transaction of PAY/SALARY
+
+```{r}
+DT::datatable(data1<- data%>%filter(txn_description=="PAY/SALARY") %>% group_by(first_name) %>% count(customer_id)%>%arrange(desc(n)))
+
+```
+
+### Table B: Customers who involve in transaction of POS/POS_SALES
+
+```{r}
+DT::datatable(data2<- data%>%filter(txn_description=="POS"|txn_description=="POS_SALES") %>% group_by(first_name) %>% count(customer_id)%>%arrange(desc(n)))
+
+```
+

@@ -1,0 +1,93 @@
+---
+title: "ANZ"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(readxl)
+library(fpp2)
+```
+
+```{r}
+data<-read_excel("ANZ_synthesised_transaction_dataset.xlsx")
+```
+
+Predictive Analytics
+==================================================================
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Histogram of customers' salary: Most of the customers paid by RM1000-1200
+
+```{r}
+data1<- data%>%filter(txn_description=="PAY/SALARY")
+plot_ly(data1, x=~amount, type="histogram")
+```
+
+
+### Relationship between salary and age: Salary decreased by age
+
+```{r}
+d1<-ggplot(data1, aes(x=age,y=amount))+geom_point()+geom_smooth(method = "lm",se=FALSE)
+ggplotly(d1)
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Relationship between salary and gender : Male get paid more than female
+
+```{r}
+d2<-ggplot(data1, aes(x=gender,y=amount))+geom_boxplot()
+ggplotly(d2)
+```
+
+### Relationship between salary and day : Most of the customers get paid on Monday
+>1:Monday, 2:Tuesday, 3:Wednesday, 4:Thursday, 5:Friday, 6:Saturday, 7:Sunday
+
+```{r}
+d3<-ggplot(data1, aes(Weekday))+geom_bar()
+ggplotly(d3)
+```
+
+Multiple Linear Regression Model
+=====================================================================
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Model
+>Since the p-value for gender and age are small, so the test is significant that gender and age are significantly effect the amount of salary.
+
+```{r}
+d4<-lm(amount~gender+age+Weekday,data1)
+summary(d4)
+```
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+
+### Residuals diagnostic(Autocorrelation test)
+
+```{r}
+res<-residuals(d4)
+d5<-ggAcf(res)
+ggplotly(d5)
+```
+
+### Residuals diagnostic(Normality test)
+
+```{r}
+shapiro.test(res)
+```
+>The residuals were uncorrelated but not normally distributed.
+>The modification of model is needed. 
